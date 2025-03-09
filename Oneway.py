@@ -1527,9 +1527,9 @@ def main():
 if __name__ == '__main__':
     main()
 
-# Footer - moved here to be displayed immediately
+# Footer with LinkedIn profile link
 st.markdown(f"""
 <div style="text-align: center; padding-top: 20px;">
-    © {current_year} Developed by: Galuh Adi Insani with ❤️. All rights reserved.
+    © {current_year} Developed by: <a href="https://www.linkedin.com/in/galuh-adi-insani-1aa0a5105/" target="_blank">Galuh Adi Insani</a> with ❤️. All rights reserved.
 </div>
 """, unsafe_allow_html=True)
