@@ -381,6 +381,24 @@ with tab2:
                     horizontal=True
                 )
                 
+                # First, create an expander to show more information about post-hoc tests
+                with st.expander("ℹ️ Informasi tentang Uji Post-Hoc"):
+                    st.markdown("""
+                    ### Perbandingan Metode Post-Hoc
+
+                    | Metode | Asumsi Varians | Perbandingan | Kekuatan | Konservatif |
+                    |--------|----------------|--------------|----------|-------------|
+                    | Tukey HSD | Homogen | Semua pasangan | Moderat | Moderat |
+                    | Bonferroni | Homogen | Semua pasangan | Rendah | Sangat |
+                    | Scheffe | Homogen | Semua kombinasi | Rendah | Sangat |
+                    | Games-Howell | Tidak homogen | Semua pasangan | Moderat | Moderat |
+                    | Duncan | Homogen | Semua pasangan | Tinggi | Rendah |
+                    | Newman-Keuls | Homogen | Semua pasangan (step-down) | Tinggi | Moderat |
+
+                    - **Konservatif**: Tingkat kontrol terhadap kesalahan Tipe I (false positive)
+                    - **Kekuatan**: Kemampuan mendeteksi perbedaan signifikan yang sebenarnya (mengurangi kesalahan Tipe II)
+                    """)
+
                 df_posthoc = pd.DataFrame({
                     'Group': df[categorical_col],
                     'Value': df[numeric_col]
@@ -534,7 +552,16 @@ with tab2:
                 
                 elif posthoc_method == "Newman-Keuls":
                     st.write("#### Uji Student-Newman-Keuls (SNK)")
-                    st.write("*Terbaik untuk: Kontrol kesalahan familywise dengan kekuatan lebih tinggi dari Tukey HSD.*")
+                    st.write("""
+                    *Terbaik untuk: Kontrol kesalahan familywise dengan kekuatan statistik lebih tinggi dari Tukey HSD.*
+
+                    **Profil Uji Newman-Keuls:**
+                    - Menggunakan pendekatan *step-down* yang menyesuaikan nilai kritis berdasarkan rentang antara rata-rata
+                    - Memiliki kekuatan statistik yang lebih tinggi daripada Tukey HSD, sehingga lebih mampu mendeteksi perbedaan nyata
+                    - Menyeimbangkan kontrol kesalahan Tipe I dan Tipe II lebih baik dari metode konservatif
+                    - Menguji perbedaan dengan nilai kritis yang berbeda tergantung pada jarak peringkat antar rata-rata
+                    - Rekomendasi: Gunakan ketika varians homogen dan Anda ingin metode dengan kekuatan lebih tinggi dari Tukey HSD
+                    """)
                     
                     # Get unique groups and their means, sorted by mean value
                     group_data = {}
@@ -1035,33 +1062,6 @@ with tab2:
             
             st.markdown("""
             **Cara menginterpretasikan plot QQ ini:**
-            - Plot QQ membandingkan data Anda dengan distribusi normal teoretis
-            - Sumbu-x menunjukkan kuantil teoretis dari distribusi normal
-            - Sumbu-y menunjukkan kuantil data aktual
-            
-            **Yang perlu diperhatikan:**
-            - Titik-titik yang mengikuti garis diagonal menandakan data terdistribusi normal
-            - Penyimpangan dari garis diagonal menunjukkan ketidaknormalan:
-              - Pola berbentuk S menunjukkan kemiringan (skewness)
-              - Titik-titik di atas/bawah garis pada ujung-ujungnya menunjukkan ekor berat/ringan
-            - ANOVA cukup kuat terhadap penyimpangan kecil dari normalitas
-            - Penyimpangan yang signifikan mungkin memerlukan transformasi data atau uji non-parametrik
-            """)
-            
-        if not 'notification_shown' in st.session_state:
-            st.balloons()
-            st.success("✅ Analisis selesai! Tinjau hasil di atas.")
-            st.session_state.notification_shown = True
-            
-            # Add download options for results
-            st.subheader("Unduh Hasil")
-            
-            # First install python-docx if not already installed
-            import subprocess
-            import sys
-            try:
-                import docx
-            except ImportError:
                 st.info("Menginstal library yang diperlukan...")
                 subprocess.check_call([sys.executable, "-m", "pip", "install", "python-docx"])
                 import docx
