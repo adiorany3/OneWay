@@ -781,6 +781,101 @@ with tab2:
                     else:
                         st.error("Tidak dapat melakukan analisis post-hoc Games-Howell. Silakan periksa data Anda.")
                 
+                elif posthoc_method == "Bonferroni":
+                    st.write("#### Uji Bonferroni")
+                    st.write("*Terbaik untuk: Jumlah perbandingan kecil, kontrol ketat terhadap kesalahan Tipe I.*")
+                    
+                    # Create all pairwise combinations
+                    from itertools import combinations
+                    pairs = list(combinations(df[categorical_col].unique(), 2))
+                    
+                    # Calculate number of comparisons for Bonferroni correction
+                    num_comparisons = len(pairs)
+                    
+                    # Perform Bonferroni-corrected t-tests
+                    results = []
+                    for group1, group2 in pairs:
+                        # Get data for each group
+                        data1 = df[df[categorical_col] == group1][numeric_col].values
+                        data2 = df[df[categorical_col] == group2][numeric_col].values
+                        
+                        # Check if we have enough data
+                        if len(data1) < 2 or len(data2) < 2:
+                            st.warning(f"Insufficient data for groups {group1} or {group2}. Skipping this comparison.")
+                            continue
+                            
+                        # Perform t-test
+                        t_stat, p_val = stats.ttest_ind(data1, data2, equal_var=assumptions['homogeneity']['Equal Variances'])
+                        
+                        # Apply Bonferroni correction
+                        p_adjusted = min(p_val * num_comparisons, 1.0)  # Cap at 1.0
+                        
+                        # Calculate mean difference
+                        mean_diff = np.mean(data1) - np.mean(data2)
+                        
+                        # Calculate standard error
+                        n1, n2 = len(data1), len(data2)
+                        if assumptions['homogeneity']['Equal Variances']:
+                            # Pooled standard error (equal variances)
+                            var1 = np.var(data1, ddof=1)
+                            var2 = np.var(data2, ddof=1)
+                            pooled_var = ((n1-1)*var1 + (n2-1)*var2) / (n1 + n2 - 2)
+                            se = np.sqrt(pooled_var * (1/n1 + 1/n2))
+                        else:
+                            # Welch's t-test standard error (unequal variances)
+                            se = np.sqrt(np.var(data1, ddof=1)/n1 + np.var(data2, ddof=1)/n2)
+                        
+                        # Calculate confidence interval
+                        if assumptions['homogeneity']['Equal Variances']:
+                            # Use t-distribution with pooled degrees of freedom
+                            df_val = n1 + n2 - 2
+                        else:
+                            # Use Welch-Satterthwaite equation for degrees of freedom
+                            var1 = np.var(data1, ddof=1)
+                            var2 = np.var(data2, ddof=1)
+                            num = (var1/n1 + var2/n2)**2
+                            denom = (var1/n1)**2/(n1-1) + (var2/n2)**2/(n2-1)
+                            df_val = num/denom if denom > 0 else float('inf')
+                        
+                        # Get critical value for confidence interval
+                        # For Bonferroni, we need to adjust alpha for the number of comparisons
+                        alpha_corrected = significance_level / num_comparisons
+                        t_crit = stats.t.ppf(1 - alpha_corrected/2, df_val)
+                        
+                        # Calculate confidence interval
+                        lower = mean_diff - t_crit * se
+                        upper = mean_diff + t_crit * se
+                        
+                        results.append({
+                            'group1': group1,
+                            'group2': group2,
+                            'meandiff': mean_diff,
+                            't-value': t_stat,
+                            'p-value': p_val,
+                            'p-adjusted': p_adjusted,
+                            'lower': lower,
+                            'upper': upper,
+                            'reject': p_adjusted < significance_level
+                        })
+
+                    # Convert to DataFrame
+                    posthoc_df = pd.DataFrame(results)
+                    st.write(posthoc_df)
+                    
+                    # Store column names for later use
+                    comparison_col1, comparison_col2 = 'group1', 'group2'
+                    diff_col = 'meandiff'
+                    pval_col = 'p-adjusted'  # Use adjusted p-value for Bonferroni
+                    reject_col = 'reject'
+                    
+                    st.markdown("""
+                    **Catatan tentang koreksi Bonferroni:**
+                    - Koreksi Bonferroni mengontrol tingkat kesalahan familywise dengan membagi alpha dengan jumlah perbandingan
+                    - Ini sangat konservatif, terutama dengan banyak perbandingan
+                    - P-adjusted = p-value × jumlah perbandingan (dibulatkan ke maksimum 1,0)
+                    - Menolak H₀ jika p-adjusted < alpha
+                    """)
+                
                 # Create a subset table showing significant differences
                 st.subheader("Perbedaan Kelompok yang Signifikan")
 
