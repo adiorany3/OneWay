@@ -1305,7 +1305,7 @@ with tab3:
     st.markdown("""
     #### Perbandingan Visual Variasi Dalam dan Antar Kelompok
     
-    ![ANOVA Concept]
+    Konsep ANOVA dapat diilustrasikan dengan membagi variasi total data menjadi variasi dalam kelompok dan antar kelompok. Jika perbedaan antar kelompok jauh lebih besar daripada variasi dalam kelompok, maka kita dapat menyimpulkan bahwa setidaknya satu kelompok berbeda secara signifikan dari yang lain.
     
     *Gambar: Ilustrasi konsep ANOVA. Variasi total dibagi menjadi variasi dalam kelompok dan antar kelompok.*
     
