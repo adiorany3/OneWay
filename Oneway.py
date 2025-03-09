@@ -117,9 +117,9 @@ with tab1:
         st.header("Sumber Data")
         
         # Add data privacy notice
-        st.info("**Catatan Privasi**: Data yang Anda unggah ke aplikasi ini diproses secara lokal dan tidak disimpan secara permanen di server. Data Anda akan dihapus segera setelah sesi browser ditutup.")
+        st.info("**Catatan Privasi**: Data yang Anda unggah ke aplikasi ini diproses secara lokal dan tidak disimpan secara permanen di server. Data Anda tidak disimpan, dan akan dihapus segera setelah sesi browser ditutup.")
         
-        use_example = st.checkbox("Gunakan data contoh")
+        use_example = st.checkbox("Gunakan data contoh, jika Anda ingin mencobanya")
         
         if use_example:
             df = create_example_data()
@@ -1241,8 +1241,7 @@ with tab3:
     
     st.markdown("""
     ### Apa itu ANOVA?
-    Analysis of Variance (ANOVA) atau Analisis Varians adalah metode statistik yang digunakan untuk menguji perbedaan antara dua atau lebih rata-rata. 
-    Metode ini bekerja dengan memeriksa variasi dalam dataset dan di mana variasi tersebut ditemukan (antara kelompok atau dalam kelompok).
+    Analisis Varians (ANOVA) Satu Arah adalah metode statistik yang digunakan untuk membandingkan rata-rata tiga atau lebih kelompok independen untuk menentukan apakah terdapat perbedaan yang signifikan secara statistik di antara mereka. Teknik ini memeriksa variasi data baik di dalam maupun antar kelompok untuk mengevaluasi perbedaan keseluruhan.
     
     ### Kapan Menggunakan ANOVA Satu Arah
     Gunakan ANOVA Satu Arah ketika:
