@@ -1286,7 +1286,7 @@ with tab3:
     ### Referensi Jurnal yang dipergunakan :
     
     1. Fisher, R.A. (1925). Statistical methods for research workers. Edinburgh: Oliver and Boyd.
-     2. Gelman, A. (2005). Analysis of variance—why it is more important than ever. *The Annals of Statistics*, 33(1), 1-53.
+      2. Gelman, A. (2005). Analysis of variance—why it is more important than ever. *The Annals of Statistics*, 33(1), 1-53.
     3. Keselman, H.J., Algina, J., Kowalchuk, R.K., & Wolfinger, R.D. (1998). A comparison of two approaches for selecting covariance structures in the analysis of repeated measurements. *Communications in Statistics - Simulation and Computation*, 27(3), 591-604.    
     4. Maxwell, S.E., Delaney, H.D., & Kelley, K. (2017). *Designing experiments and analyzing data: A model comparison perspective* (3rd ed.). Routledge.   
     5. Howell, D.C. (2012). *Statistical methods for psychology* (8th ed.). Cengage Learning.
@@ -1356,7 +1356,7 @@ with tab3:
 def main():
     pass  # Your main code logic here if needed
 
-if __name__ '__main__':
+if __name__ == '__main__':  # Added == operator here
     main()
 
     # Footer - moved here to be displayed immediately
