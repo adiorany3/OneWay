@@ -1267,6 +1267,19 @@ with tab3:
     - Efek sedang: η² ≈ 0,06
     - Efek besar: η² ≈ 0,14
     
+    ### Contoh Aplikasi ANOVA
+    - Membandingkan efektivitas tiga metode pengajaran berbeda pada nilai ujian siswa
+    - Membandingkan hasil panen dari empat jenis pupuk berbeda
+    - Membandingkan tingkat kepuasan pelanggan di beberapa toko cabang
+    - Membandingkan efektivitas beberapa jenis obat dalam menurunkan tekanan darah
+    
+    ### Perhitungan ANOVA
+    ANOVA membagi total variasi data (SST) menjadi:
+    - Variasi antar kelompok (SSB): variasi yang dijelaskan oleh perbedaan kelompok
+    - Variasi dalam kelompok (SSW): variasi yang tidak dijelaskan (residual/error)
+    
+    F-statistik dihitung sebagai: F = (SSB/dfB) / (SSW/dfW) = MSB / MSW
+    
     ### Referensi Jurnal Internasional
     
     1. Fisher, R.A. (1925). Statistical methods for research workers. Edinburgh: Oliver and Boyd.
@@ -1286,6 +1299,63 @@ with tab3:
     8. Wilcox, R.R. (2017). *Introduction to robust estimation and hypothesis testing* (4th ed.). Academic Press.
     """)
 
+    # Add visualization of ANOVA concept
+    st.subheader("Visualisasi Konsep ANOVA")
+    
+    st.markdown("""
+    #### Perbandingan Visual Variasi Dalam dan Antar Kelompok
+    
+    ![ANOVA Concept](https://miro.medium.com/max/1400/1*_HjenBLix6RXQJx6lHGR9Q.png)
+    
+    *Gambar: Ilustrasi konsep ANOVA. Variasi total dibagi menjadi variasi dalam kelompok dan antar kelompok.*
+    
+    #### Formula Utama ANOVA
+    
+    $$F = \\frac{MS_{between}}{MS_{within}} = \\frac{\\frac{SS_{between}}{df_{between}}}{\\frac{SS_{within}}{df_{within}}}$$
+    
+    dimana:
+    - $SS_{between}$ = Jumlah kuadrat antar kelompok
+    - $SS_{within}$ = Jumlah kuadrat dalam kelompok
+    - $df_{between}$ = Derajat kebebasan antar kelompok (k-1)
+    - $df_{within}$ = Derajat kebebasan dalam kelompok (N-k)
+    - $MS_{between}$ = Rerata kuadrat antar kelompok
+    - $MS_{within}$ = Rerata kuadrat dalam kelompok
+    """)
+
+    # Add flow chart for ANOVA decision process
+    st.subheader("Alur Pengambilan Keputusan ANOVA")
+    
+    st.markdown("""
+    ```
+    Mulai
+      │
+      ▼
+    Memenuhi Asumsi?
+      │
+      ├── Tidak ──► Pertimbangkan Transformasi Data
+      │               atau Gunakan Uji Non-Parametrik
+      │
+      ▼ Ya
+    Jalankan ANOVA
+      │
+      ▼
+    p < alpha?
+      │
+      ├── Tidak ──► Gagal tolak H₀: Tidak ada perbedaan signifikan
+      │
+      ▼ Ya
+    Tolak H₀: Ada perbedaan signifikan
+      │
+      ▼
+    Jalankan Uji Post-Hoc
+      │
+      ▼
+    Interpretasi Hasil
+      │
+      ▼
+    Selesai
+    ```
+    """)
 # Define main function or remove the call if not needed
 def main():
     pass  # Your main code logic here if needed
