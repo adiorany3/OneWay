@@ -119,7 +119,7 @@ with tab1:
         # Add data privacy notice
         st.info("**Catatan Privasi**: Data yang Anda unggah ke aplikasi ini diproses secara lokal dan tidak disimpan secara permanen di server. Data Anda tidak disimpan, dan akan dihapus segera setelah sesi browser ditutup.")
         
-        use_example = st.checkbox("Gunakan data contoh, jika Anda ingin mencobanya")
+        use_example = st.checkbox("Gunakan data contoh ini, jika Anda hanya ingin mencobanya.")
         
         if use_example:
             df = create_example_data()
