@@ -11,6 +11,16 @@ import datetime  # Import moved to the top with other imports
 # Modified to include calculator favicon
 st.set_page_config(page_title="Analisis Uji ANOVA Satu Arah", page_icon="🧮", layout="wide")
 
+# Hide default Streamlit elements
+hide_st_style = """
+        <style>
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        header {visibility: hidden;}
+        </style>
+        """
+st.markdown(hide_st_style, unsafe_allow_html=True)
+
 # Get current year for copyright notice
 current_year = datetime.datetime.now().year
 
@@ -1263,13 +1273,3 @@ st.markdown(f"""
     © {current_year} Developed by: Galuh Adi Insani with ❤️. All rights reserved.
 </div>
 """, unsafe_allow_html=True)
-
-# Hide default Streamlit elements
-hide_st_style = """
-        <style>
-        #MainMenu {visibility: hidden;}
-        footer {visibility: hidden;}
-        header {visibility: hidden;}
-        </style>
-        """
-st.markdown(hide_st_style, unsafe_allow_html=True)
