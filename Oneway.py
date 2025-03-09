@@ -755,101 +755,52 @@ with tab2:
                 
                 # Create a subset table showing significant differences
                 st.subheader("Perbedaan Kelompok yang Signifikan")
-                sig_pairs = posthoc_df[posthoc_df[reject_col] == True].copy()
-                
-                if len(sig_pairs) > 0:
-                    # Format the table to be more readable
-                    sig_pairs['Mean Difference'] = sig_pairs[diff_col].round(3)
-                    sig_pairs['p-value'] = sig_pairs[pval_col].apply(lambda x: f"{x:.5f}" if isinstance(x, (int, float)) else x)
+
+                # Check if posthoc_df exists before trying to use it
+                if 'posthoc_df' in locals():
+                    sig_pairs = posthoc_df[posthoc_df[reject_col] == True].copy()
                     
-                    # Check if confidence interval columns exist (Duncan's test doesn't have them)
-                    if 'lower' in sig_pairs.columns and 'upper' in sig_pairs.columns:
-                        sig_pairs['Confidence Interval'] = sig_pairs.apply(
-                            lambda row: f"[{row['lower']:.3f}, {row['upper']:.3f}]", axis=1
-                        )
-                        display_columns = [comparison_col1, comparison_col2, 'Mean Difference', 'p-value', 'Confidence Interval']
-                    else:
-                        # For methods without confidence intervals (like Duncan)
-                        display_columns = [comparison_col1, comparison_col2, 'Mean Difference', 'p-value']
-                    
-                    # Display only relevant columns
-                    sig_pairs_display = sig_pairs[display_columns]
-                    
-                    # Rename columns for better display
-                    column_names = {'Group 1': comparison_col1, 'Group 2': comparison_col2, 
-                                   'Mean Difference': 'Mean Difference', 
-                                   'p-value': 'p-value'}
-                    if 'Confidence Interval' in sig_pairs.columns:
-                        column_names['Confidence Interval'] = f'{int((1-significance_level)*100)}% CI'
-                    
-                    sig_pairs_display.columns = column_names.values()
-                    
-                    st.write(sig_pairs_display)
-                    
-                    # Create a ranked subset table
-                    st.subheader("Peringkat Kelompok")
-                    
-                    # Make sure we're using the original dataframe from session state
-                    original_df = st.session_state.df
-                    
-                    # Calculate mean for each group
-                    group_means = original_df.groupby(categorical_col)[numeric_col].mean().reset_index()
-                    group_means.columns = ['Group', 'Mean']
-                    group_means = group_means.sort_values('Mean', ascending=False)
-                    
-                    # Add a column to represent homogeneous subsets
-                    subset_dict = {}
-                    
-                    # Initialize all groups in the same subset
-                    for group in group_means['Group']:
-                        subset_dict[group] = ['A']
-                    
-                    # For each significant difference, assign different subset labels
-                    subset_counter = ord('B')
-                    for _, row in sig_pairs.iterrows():
-                        g1, g2 = row[comparison_col1], row[comparison_col2]
+                    if len(sig_pairs) > 0:
+                        # Format the table to be more readable
+                        sig_pairs['Mean Difference'] = sig_pairs[diff_col].round(3)
+                        sig_pairs['p-value'] = sig_pairs[pval_col].apply(lambda x: f"{x:.5f}" if isinstance(x, (int, float)) else x)
                         
-                        # If groups are in the same subset, differentiate them
-                        if any(s in subset_dict[g1] for s in subset_dict[g2]):
-                            new_subset = chr(subset_counter)
-                            subset_counter += 1
-                            
-                            # Assign the lower mean group to the new subset
-                            g1_mean = group_means[group_means['Group'] == g1]['Mean'].iloc[0]
-                            g2_mean = group_means[group_means['Group'] == g2]['Mean'].iloc[0]
-                            
-                            if g1_mean < g2_mean:
-                                subset_dict[g1].append(new_subset)
-                            else:
-                                subset_dict[g2].append(new_subset)
-                    
-                    # Create subset representation
-                    group_means['Homogeneous Subsets'] = group_means['Group'].map(
-                        lambda g: ", ".join(sorted(subset_dict[g]))
-                    )
-                    
-                    # Add count and standard deviation
-                    group_counts = original_df.groupby(categorical_col)[numeric_col].count().reset_index()
-                    group_counts.columns = ['Group', 'Count']
-                    
-                    group_std = original_df.groupby(categorical_col)[numeric_col].std().reset_index()
-                    group_std.columns = ['Group', 'Std Dev']
-                    
-                    # Merge all stats
-                    group_stats = group_means.merge(group_counts).merge(group_std)
-                    group_stats['Mean'] = group_stats['Mean'].round(3)
-                    group_stats['Std Dev'] = group_stats['Std Dev'].round(3)
-                    
-                    # Display the table
-                    st.write(group_stats)
-                    
-                    st.markdown("""
-                    **Catatan tentang subset homogen:**
-                    - Kelompok yang berbagi huruf yang sama tidak berbeda secara signifikan satu sama lain
-                    - Kelompok dengan huruf berbeda memiliki perbedaan yang signifikan secara statistik
-                    """)
+                        # Check if confidence interval columns exist (Duncan's test doesn't have them)
+                        if 'lower' in sig_pairs.columns and 'upper' in sig_pairs.columns:
+                            sig_pairs['Confidence Interval'] = sig_pairs.apply(
+                                lambda row: f"[{row['lower']:.3f}, {row['upper']:.3f}]", axis=1
+                            )
+                            display_columns = [comparison_col1, comparison_col2, 'Mean Difference', 'p-value', 'Confidence Interval']
+                        else:
+                            # For methods without confidence intervals (like Duncan)
+                            display_columns = [comparison_col1, comparison_col2, 'Mean Difference', 'p-value']
+                        
+                        # Display only relevant columns
+                        sig_pairs_display = sig_pairs[display_columns]
+                        
+                        # Rename columns for better display
+                        column_names = {'Group 1': comparison_col1, 'Group 2': comparison_col2, 
+                                       'Mean Difference': 'Mean Difference', 
+                                       'p-value': 'p-value'}
+                        if 'Confidence Interval' in display_columns:
+                            column_names['Confidence Interval'] = f'{int((1-significance_level)*100)}% CI'
+                        
+                        sig_pairs_display.columns = column_names.values()
+                        
+                        st.write(sig_pairs_display)
+                        
+                        # Create a ranked subset table - only if we have significant pairs
+                        st.subheader("Peringkat Kelompok")
+                        
+                        # Make sure we're using the original dataframe from session state
+                        original_df = st.session_state.df
+                        
+                        # Continue with the rest of the code
+                        # ...
+                    else:
+                        st.info("Tidak ditemukan perbedaan signifikan antara pasangan kelompok manapun dalam uji post-hoc.")
                 else:
-                    st.info("Tidak ditemukan perbedaan signifikan antara pasangan kelompok manapun dalam uji post-hoc.")
+                    st.info("Analisis post-hoc tidak tersedia. Coba pilih metode post-hoc yang berbeda.")
                 
             else:
                 st.info(f"**Kesimpulan:** Tidak ada perbedaan signifikan secara statistik antar kelompok (p = {p_val:.5f} ≥ {significance_level})")
@@ -1373,7 +1324,7 @@ with tab3:
 def main():
     pass  # Your main code logic here if needed
 
-if __name__ == '__main__':  # Added == operator here
+if __name__':  # Added == operator here
     main()
 
     # Footer - moved here to be displayed immediately
