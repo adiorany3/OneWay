@@ -1324,10 +1324,10 @@ with tab3:
 def main():
     pass  # Your main code logic here if needed
 
-if __name__':  # Added == operator here
+if __name__ == '__main__':
     main()
 
-    # Footer - moved here to be displayed immediately
+# Footer - moved here to be displayed immediately
 st.markdown(f"""
 <div style="text-align: center; padding-top: 20px;">
     © {current_year} Developed by: Galuh Adi Insani with ❤️. All rights reserved.
