@@ -116,7 +116,7 @@ with tab1:
         st.header("Sumber Data")
         
         # Add data privacy notice
-        st.info("**Catatan Privasi**: Data yang Anda unggah ke aplikasi ini diproses secara lokal dan tidak disimpan secara permanen di server. Data Anda tidak disimpan, dan akan dihapus segera setelah sesi browser ditutup.")
+        st.info("**Catatan Privasi**: Data yang Anda unggah ke aplikasi ini diproses secara lokal dan tidak disimpan secara permanen di server. Data akan diolah dengan menggunakan server kami, namun data Anda tidak disimpan permanen, dan akan dihapus segera setelah sesi browser ditutup (session).")
         
         use_example = st.checkbox("Gunakan data contoh ini, jika Anda hanya ingin mencobanya.")
         
