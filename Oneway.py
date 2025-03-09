@@ -205,6 +205,9 @@ with tab1:
                 overall_stats['SE_mean'] = df[numeric_col].sem()
                 overall_stats['CI_95%_lower'] = overall_stats['mean'] - 1.96 * overall_stats['SE_mean']
                 overall_stats['CI_95%_upper'] = overall_stats['mean'] + 1.96 * overall_stats['SE_mean']
+                # Add 99% confidence interval calculations
+                overall_stats['CI_99%_lower'] = overall_stats['mean'] - 2.576 * overall_stats['SE_mean']
+                overall_stats['CI_99%_upper'] = overall_stats['mean'] + 2.576 * overall_stats['SE_mean']
                 overall_stats['range'] = df[numeric_col].max() - df[numeric_col].min()
                 overall_stats['IQR'] = overall_stats['75%'] - overall_stats['25%']
                 overall_stats['CV%'] = (overall_stats['std'] / overall_stats['mean'] * 100)
@@ -935,9 +938,6 @@ with tab2:
                             # Ensure all values are numeric
                             group_means_numeric = [float(mean) for mean in group_means]
                             group_counts_numeric = [int(count) for count in group_counts]
-                            grand_mean_numeric = float(grand_mean)
-                            
-                            # Calculate Welch's statistic with safe division
                             w = sum(count * (mean - grand_mean_numeric)**2 / var 
                                   for count, mean, var in zip(group_counts_numeric, group_means_numeric, group_vars))
                             
