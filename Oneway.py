@@ -376,7 +376,7 @@ with tab2:
                 
                 # Add post-hoc test selection
                 posthoc_method = st.radio(
-                    "Pilih metode uji post-hoc: (keterangan masing-masing uji lanjut ini ada di tab Tentang Anova)",
+                    "Pilih metode uji post-hoc:",
                     ["Tukey HSD", "Bonferroni", "Scheffe", "Games-Howell", "Duncan", "Newman-Keuls"],
                     horizontal=True
                 )
