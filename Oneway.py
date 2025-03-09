@@ -876,6 +876,94 @@ with tab2:
                     - Menolak H₀ jika p-adjusted < alpha
                     """)
                 
+                elif posthoc_method == "Scheffe":
+                    st.write("#### Uji Scheffe")
+                    st.write("*Terbaik untuk: Semua kombinasi kelompok, tidak hanya perbandingan berpasangan, dan ukuran sampel yang tidak sama.*")
+                    
+                    # Create all pairwise combinations
+                    from itertools import combinations
+                    pairs = list(combinations(df[categorical_col].unique(), 2))
+                    
+                    # MSE from ANOVA
+                    mse = msw
+                    
+                    # Perform Scheffe test
+                    results = []
+                    for group1, group2 in pairs:
+                        # Get data for each group
+                        data1 = df[df[categorical_col] == group1][numeric_col].values
+                        data2 = df[df[categorical_col] == group2][numeric_col].values
+                        
+                        # Check if we have enough data
+                        if len(data1) < 2 or len(data2) < 2:
+                            st.warning(f"Insufficient data for groups {group1} or {group2}. Skipping this comparison.")
+                            continue
+                        
+                        # Sample sizes
+                        n1, n2 = len(data1), len(data2)
+                        
+                        # Group means
+                        mean1, mean2 = np.mean(data1), np.mean(data2)
+                        
+                        # Calculate mean difference
+                        mean_diff = mean1 - mean2
+                        
+                        # Calculate F statistic for this comparison
+                        # F = (mean_diff)^2 / [MSE * (1/n1 + 1/n2)]
+                        f_val = (mean_diff**2) / (mse * (1/n1 + 1/n2))
+                        
+                        # Critical F value for Scheffe
+                        # (k-1) * F_crit(alpha, k-1, df_error)
+                        k = len(df[categorical_col].unique())  # Number of groups
+                        f_crit = stats.f.ppf(1 - significance_level, k-1, dfw)
+                        scheffe_crit = (k-1) * f_crit
+                        
+                        # Calculate p-value
+                        # p-value = 1 - F_cdf(F/((k-1)), k-1, df_error)
+                        p_val = 1 - stats.f.cdf(f_val/(k-1), k-1, dfw)
+                        
+                        # Standard error
+                        se = np.sqrt(mse * (1/n1 + 1/n2))
+                        
+                        # Calculate confidence interval
+                        # Critical value for Scheffe interval
+                        scheffe_cval = np.sqrt(scheffe_crit)
+                        
+                        # Confidence interval
+                        lower = mean_diff - scheffe_cval * se
+                        upper = mean_diff + scheffe_cval * se
+                        
+                        results.append({
+                            'group1': group1,
+                            'group2': group2,
+                            'meandiff': mean_diff,
+                            'F-value': f_val,
+                            'critical F': scheffe_crit,
+                            'p-value': p_val,
+                            'lower': lower,
+                            'upper': upper,
+                            'reject': f_val > scheffe_crit
+                        })
+                    
+                    # Convert to DataFrame
+                    posthoc_df = pd.DataFrame(results)
+                    st.write(posthoc_df)
+                    
+                    # Store column names for later use
+                    comparison_col1, comparison_col2 = 'group1', 'group2'
+                    diff_col = 'meandiff'
+                    pval_col = 'p-value'
+                    reject_col = 'reject'
+                    
+                    st.markdown("""
+                    **Catatan tentang uji Scheffe:**
+                    - Uji Scheffe adalah salah satu uji post-hoc paling konservatif
+                    - Dirancang untuk menguji tidak hanya perbandingan berpasangan tetapi semua kemungkinan kontras
+                    - Kontrol ketat terhadap kesalahan familywise dalam semua perbandingan
+                    - Cocok digunakan ketika terdapat jumlah sampel yang tidak sama antar kelompok
+                    - Sangat konservatif, sehingga memiliki kekuatan statistik yang lebih rendah dibandingkan uji lain seperti Tukey HSD
+                    """)
+                
                 # Create a subset table showing significant differences
                 st.subheader("Perbedaan Kelompok yang Signifikan")
 
