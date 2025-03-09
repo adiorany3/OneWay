@@ -381,7 +381,13 @@ with tab2:
                     horizontal=True
                 )
                 
-                # First, create an expander to show more information about post-hoc tests
+                df_posthoc = pd.DataFrame({
+                    'Group': df[categorical_col],
+                    'Value': df[numeric_col]
+                })
+                
+                # Add this block here (around line 1234)
+                # Information about post-hoc tests
                 with st.expander("ℹ️ Informasi tentang Uji Post-Hoc"):
                     st.markdown("""
                     ### Perbandingan Metode Post-Hoc
@@ -398,11 +404,6 @@ with tab2:
                     - **Konservatif**: Tingkat kontrol terhadap kesalahan Tipe I (false positive)
                     - **Kekuatan**: Kemampuan mendeteksi perbedaan signifikan yang sebenarnya (mengurangi kesalahan Tipe II)
                     """)
-
-                df_posthoc = pd.DataFrame({
-                    'Group': df[categorical_col],
-                    'Value': df[numeric_col]
-                })
                 
                 # Perform the selected post-hoc test
                 if posthoc_method == "Tukey HSD":
