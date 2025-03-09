@@ -1063,6 +1063,22 @@ with tab2:
             
             st.markdown("""
             **Cara menginterpretasikan plot QQ ini:**
+            - Titik yang mengikuti garis lurus menunjukkan data yang terdistribusi normal
+            - Penyimpangan dari garis diagonal menunjukkan deviasi dari distribusi normal
+            - Perhatikan pola penyimpangan:
+              - Kurva ke atas/bawah di ujung menunjukkan ekor yang lebih berat/ringan
+              - Pola S menunjukkan skewness (kemiringan) dalam data
+            """)
+            
+            # Proper code for document export functionality
+            import io
+            
+            # Check if we need to install python-docx
+            try:
+                import docx
+            except ImportError:
+                import sys
+                import subprocess
                 st.info("Menginstal library yang diperlukan...")
                 subprocess.check_call([sys.executable, "-m", "pip", "install", "python-docx"])
                 import docx
@@ -1196,7 +1212,7 @@ with tab2:
                 )
             
             st.success("""
-            ✅ File Word mencakup:
+            ✓ File Word mencakup:  
             - Tabel ANOVA lengkap
             - Hasil uji asumsi 
             - Hasil analisis post-hoc
