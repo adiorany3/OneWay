@@ -544,13 +544,12 @@ with tab2:
                     for group1, group2 in pairs:
                         data1 = df[df[categorical_col] == group1][numeric_col]
                         data2 = df[df[categorical_col] == group2][numeric_col]
-                        
+
                         t_stat, p_val_raw = stats.ttest_ind(data1, data2, equal_var=assumptions['homogeneity']['Equal Variances'])
                         p_val_adj = min(p_val_raw * n_comparisons, 1.0)  # Bonferroni adjustment
                         mean_diff = data1.mean() - data2.mean()
-                        
+
                         # Calculate confidence interval
-                        from scipy import stats
                         n1, n2 = len(data1), len(data2)
                         df = n1 + n2 - 2
                         pooled_sd = np.sqrt(((n1 - 1) * data1.std(ddof=1)**2 + (n2 - 1) * data2.std(ddof=1)**2) / df)
@@ -558,7 +557,7 @@ with tab2:
                         t_crit = stats.t.ppf(1 - significance_level/2, df) * np.sqrt(n_comparisons)  # Bonferroni adjustment
                         lower = mean_diff - t_crit * se
                         upper = mean_diff + t_crit * se
-                        
+
                         results.append({
                             'group1': group1,
                             'group2': group2,
@@ -569,10 +568,10 @@ with tab2:
                             'upper': upper,
                             'reject': p_val_adj < significance_level
                         })
-                    
+
                     posthoc_df = pd.DataFrame(results)
                     st.write(posthoc_df)
-                    
+
                     # Store column names for later use
                     comparison_col1, comparison_col2 = 'group1', 'group2'
                     diff_col = 'meandiff'
