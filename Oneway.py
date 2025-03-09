@@ -542,42 +542,55 @@ with tab2:
                     # Perform t-test for each pair with Bonferroni correction
                     n_comparisons = len(pairs)
                     for group1, group2 in pairs:
-                        data1 = df[df[categorical_col] == group1][numeric_col]
-                        data2 = df[df[categorical_col] == group2][numeric_col]
+                        try:
+                            # Get data for each group
+                            data1 = df[df[categorical_col] == group1][numeric_col].values
+                            data2 = df[df[categorical_col] == group2][numeric_col].values
+                            
+                            # Check if we have enough data
+                            if len(data1) < 2 or len(data2) < 2:
+                                st.warning(f"Insufficient data for groups {group1} or {group2}. Skipping this comparison.")
+                                continue
+                                
+                            t_stat, p_val_raw = stats.ttest_ind(data1, data2, equal_var=assumptions['homogeneity']['Equal Variances'])
+                            p_val_adj = min(p_val_raw * n_comparisons, 1.0)  # Bonferroni adjustment
+                            mean_diff = np.mean(data1) - np.mean(data2)
 
-                        t_stat, p_val_raw = stats.ttest_ind(data1, data2, equal_var=assumptions['homogeneity']['Equal Variances'])
-                        p_val_adj = min(p_val_raw * n_comparisons, 1.0)  # Bonferroni adjustment
-                        mean_diff = data1.mean() - data2.mean()
+                            # Calculate confidence interval
+                            n1, n2 = len(data1), len(data2)
+                            df_val = n1 + n2 - 2
+                            pooled_sd = np.sqrt(((n1 - 1) * np.var(data1, ddof=1) + (n2 - 1) * np.var(data2, ddof=1)) / df_val)
+                            se = pooled_sd * np.sqrt(1/n1 + 1/n2)
+                            t_crit = stats.t.ppf(1 - significance_level/2, df_val) * np.sqrt(n_comparisons)  # Bonferroni adjustment
+                            lower = mean_diff - t_crit * se
+                            upper = mean_diff + t_crit * se
 
-                        # Calculate confidence interval
-                        n1, n2 = len(data1), len(data2)
-                        df = n1 + n2 - 2
-                        pooled_sd = np.sqrt(((n1 - 1) * data1.std(ddof=1)**2 + (n2 - 1) * data2.std(ddof=1)**2) / df)
-                        se = pooled_sd * np.sqrt(1/n1 + 1/n2)
-                        t_crit = stats.t.ppf(1 - significance_level/2, df) * np.sqrt(n_comparisons)  # Bonferroni adjustment
-                        lower = mean_diff - t_crit * se
-                        upper = mean_diff + t_crit * se
+                            results.append({
+                                'group1': group1,
+                                'group2': group2,
+                                'meandiff': mean_diff,
+                                'p-val': p_val_raw,
+                                'p-adj': p_val_adj,
+                                'lower': lower,
+                                'upper': upper,
+                                'reject': p_val_adj < significance_level
+                            })
+                        except Exception as e:
+                            st.error(f"Error analyzing groups {group1} and {group2}: {str(e)}")
+                            continue
 
-                        results.append({
-                            'group1': group1,
-                            'group2': group2,
-                            'meandiff': mean_diff,
-                            'p-val': p_val_raw,
-                            'p-adj': p_val_adj,
-                            'lower': lower,
-                            'upper': upper,
-                            'reject': p_val_adj < significance_level
-                        })
+                    if results:
+                        posthoc_df = pd.DataFrame(results)
+                        st.write(posthoc_df)
 
-                    posthoc_df = pd.DataFrame(results)
-                    st.write(posthoc_df)
-
-                    # Store column names for later use
-                    comparison_col1, comparison_col2 = 'group1', 'group2'
-                    diff_col = 'meandiff'
-                    pval_col = 'p-adj'
-                    reject_col = 'reject'
-                    
+                        # Store column names for later use
+                        comparison_col1, comparison_col2 = 'group1', 'group2'
+                        diff_col = 'meandiff'
+                        pval_col = 'p-adj'
+                        reject_col = 'reject'
+                    else:
+                        st.error("Tidak dapat melakukan analisis post-hoc Bonferroni. Silakan periksa data Anda.")
+                
                 elif posthoc_method == "Scheffe":
                     st.write("#### Uji Scheffe")
                     st.write("*Terbaik untuk: Perbandingan kompleks, ukuran sampel yang tidak sama, semua kontras yang mungkin.*")
