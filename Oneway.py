@@ -377,7 +377,7 @@ with tab2:
                 # Add post-hoc test selection
                 posthoc_method = st.radio(
                     "Pilih metode uji post-hoc:",
-                    ["Tukey HSD", "Bonferroni", "Scheffe", "Games-Howell", "Duncan"],
+                    ["Tukey HSD", "Bonferroni", "Scheffe", "Games-Howell", "Duncan", "Newman-Keuls"],
                     horizontal=True
                 )
                 
@@ -532,123 +532,86 @@ with tab2:
                     Uji Duncan kurang konservatif dibandingkan Tukey HSD, sehingga dapat mengidentifikasi lebih banyak perbedaan signifikan.
                     """)
                 
-                elif posthoc_method == "Bonferroni":
-                    st.write("#### Uji Bonferroni")
-                    st.write("*Terbaik untuk: Mengontrol tingkat kesalahan familywise, jumlah perbandingan yang kecil.*")
+                elif posthoc_method == "Newman-Keuls":
+                    st.write("#### Uji Student-Newman-Keuls (SNK)")
+                    st.write("*Terbaik untuk: Kontrol kesalahan familywise dengan kekuatan lebih tinggi dari Tukey HSD.*")
                     
-                    # Create all pairwise combinations
-                    from itertools import combinations
-                    pairs = list(combinations(df[categorical_col].unique(), 2))
-                    results = []
+                    # Get unique groups and their means, sorted by mean value
+                    group_data = {}
+                    for group in df[categorical_col].unique():
+                        values = df[df[categorical_col] == group][numeric_col].values
+                        group_data[group] = {
+                            'mean': np.mean(values),
+                            'n': len(values)
+                        }
                     
-                    # Perform t-test for each pair with Bonferroni correction
-                    n_comparisons = len(pairs)
-                    for group1, group2 in pairs:
+                    # Sort groups by mean
+                    sorted_groups = sorted(group_data.keys(), key=lambda g: group_data[g]['mean'])
+                    sorted_means = [group_data[g]['mean'] for g in sorted_groups]
+                    
+                    # Calculate MSE and df from ANOVA
+                    mse = msw  # Mean square within from ANOVA
+                    df_error = dfw  # Degrees of freedom within groups
+                    
+                    # Calculate harmonic mean of sample sizes (for unequal sample sizes)
+                    n_values = [group_data[g]['n'] for g in sorted_groups]
+                    if all(n == n_values[0] for n in n_values):
+                        n_harmonic = n_values[0]  # All sample sizes are equal
+                    else:
+                        n_harmonic = len(n_values) / sum(1/n for n in n_values)
+                    
+                    # Function to get critical q value for Newman-Keuls test
+                    def get_q_critical(p, df, alpha=0.05):
+                        # p is the range (number of steps between means)
+                        # Use studentized range distribution for SNK test
+                        from scipy.stats import studentized_range
                         try:
-                            # Get data for each group
-                            data1 = df[df[categorical_col] == group1][numeric_col].values
-                            data2 = df[df[categorical_col] == group2][numeric_col].values
+                            # Direct calculation if scipy has the function
+                            q = studentized_range.ppf(1-alpha, p, df)
+                        except:
+                            # Approximation if the function is not available
+                            q = stats.t.ppf(1 - alpha/(2*p), df) * np.sqrt(2)
+                        return q
+                    
+                    # Perform all pairwise comparisons
+                    results = []
+                    k = len(sorted_groups)
+                    
+                    # Newman-Keuls compares all pairs starting with the largest difference
+                    for step_size in range(k-1, 0, -1):
+                        for i in range(k-step_size):
+                            j = i + step_size
+                            group1, group2 = sorted_groups[i], sorted_groups[j]
+                            mean_diff = sorted_means[j] - sorted_means[i]
                             
-                            # Check if we have enough data
-                            if len(data1) < 2 or len(data2) < 2:
-                                st.warning(f"Insufficient data for groups {group1} or {group2}. Skipping this comparison.")
-                                continue
-                                
-                            t_stat, p_val_raw = stats.ttest_ind(data1, data2, equal_var=assumptions['homogeneity']['Equal Variances'])
-                            p_val_adj = min(p_val_raw * n_comparisons, 1.0)  # Bonferroni adjustment
-                            mean_diff = np.mean(data1) - np.mean(data2)
-
-                            # Calculate confidence interval
-                            n1, n2 = len(data1), len(data2)
-                            df_val = n1 + n2 - 2
-                            pooled_sd = np.sqrt(((n1 - 1) * np.var(data1, ddof=1) + (n2 - 1) * np.var(data2, ddof=1)) / df_val)
-                            se = pooled_sd * np.sqrt(1/n1 + 1/n2)
-                            t_crit = stats.t.ppf(1 - significance_level/2, df_val) * np.sqrt(n_comparisons)  # Bonferroni adjustment
-                            lower = mean_diff - t_crit * se
-                            upper = mean_diff + t_crit * se
-
+                            # Get critical q value for this range
+                            q_crit = get_q_critical(step_size+1, df_error, significance_level)
+                            
+                            # Calculate least significant range
+                            se = np.sqrt(mse / n_harmonic)
+                            lsr = q_crit * se
+                            
+                            # Calculate test statistic
+                            q_stat = mean_diff / se
+                            
+                            # Check if difference is significant
+                            significant = mean_diff > lsr
+                            
+                            # Calculate p-value (approximate)
+                            p_val = 1 - stats.norm.cdf(q_stat / np.sqrt(2))
+                            
                             results.append({
                                 'group1': group1,
                                 'group2': group2,
                                 'meandiff': mean_diff,
-                                'p-val': p_val_raw,
-                                'p-adj': p_val_adj,
-                                'lower': lower,
-                                'upper': upper,
-                                'reject': p_val_adj < significance_level
+                                'steps': step_size+1,
+                                'q-value': q_stat,
+                                'critical q': q_crit,
+                                'p-value': p_val,
+                                'reject': significant
                             })
-                        except Exception as e:
-                            st.error(f"Error analyzing groups {group1} and {group2}: {str(e)}")
-                            continue
-
-                    if results:
-                        posthoc_df = pd.DataFrame(results)
-                        st.write(posthoc_df)
-
-                        # Store column names for later use
-                        comparison_col1, comparison_col2 = 'group1', 'group2'
-                        diff_col = 'meandiff'
-                        pval_col = 'p-adj'
-                        reject_col = 'reject'
-                    else:
-                        st.error("Tidak dapat melakukan analisis post-hoc Bonferroni. Silakan periksa data Anda.")
-                
-                elif posthoc_method == "Scheffe":
-                    st.write("#### Uji Scheffe")
-                    st.write("*Terbaik untuk: Perbandingan kompleks, ukuran sampel yang tidak sama, semua kontras yang mungkin.*")
                     
-                    # Create all pairwise combinations
-                    from itertools import combinations
-                    pairs = list(combinations(df[categorical_col].unique(), 2))
-                    results = []
-                    
-                    # Calculate MSE (Mean Square Error) from ANOVA
-                    mse = msw  # We already calculated this in the ANOVA
-                    
-                    # Perform Scheffe test for each pair
-                    for group1, group2 in pairs:
-                        data1 = df[df[categorical_col] == group1][numeric_col]
-                        data2 = df[df[categorical_col] == group2][numeric_col]
-                        
-                        n1, n2 = len(data1), len(data2)
-                        mean1, mean2 = data1.mean(), data2.mean()
-                        mean_diff = mean1 - mean2
-                        
-                        # Scheffe test statistic
-                        contrast = np.zeros(k)
-                        g1_idx = np.where(df[categorical_col].unique() == group1)[0][0]
-                        g2_idx = np.where(df[categorical_col].unique() == group2)[0][0]
-                        contrast[g1_idx] = 1
-                        contrast[g2_idx] = -1
-                        
-                        # Calculate F statistic for this contrast
-                        numerator = (mean_diff)**2
-                        denominator = mse * np.sum(contrast**2 / np.array(group_counts))
-                        f_stat = numerator / denominator
-                        
-                        # Critical F value with Scheffe adjustment
-                        f_crit = (k-1) * stats.f.ppf(1-significance_level, k-1, dfw)
-                        
-                        # p-value
-                        p_val = 1 - stats.f.cdf(f_stat / (k-1), k-1, dfw)
-                        
-                        # Confidence interval
-                        se = np.sqrt(mse * np.sum(contrast**2 / np.array(group_counts)))
-                        margin = np.sqrt(f_crit) * se
-                        lower = mean_diff - margin
-                        upper = mean_diff + margin
-                        
-                        results.append({
-                            'group1': group1,
-                            'group2': group2,
-                            'meandiff': mean_diff,
-                            'F-value': f_stat,
-                            'p-value': p_val,
-                            'lower': lower,
-                            'upper': upper,
-                            'reject': f_stat > f_crit
-                        })
-                    
+                    # Convert to DataFrame
                     posthoc_df = pd.DataFrame(results)
                     st.write(posthoc_df)
                     
@@ -657,6 +620,60 @@ with tab2:
                     diff_col = 'meandiff'
                     pval_col = 'p-value'
                     reject_col = 'reject'
+                    
+                    # Add homogeneous subsets table
+                    st.subheader("Subset Homogen Newman-Keuls")
+                    
+                    # Create a matrix for quick lookup of significant differences
+                    sig_matrix = {g1: {g2: False for g2 in sorted_groups} for g1 in sorted_groups}
+                    for _, row in posthoc_df.iterrows():
+                        if row['reject']:
+                            sig_matrix[row['group1']][row['group2']] = True
+                            sig_matrix[row['group2']][row['group1']] = True
+                    
+                    # Form homogeneous subsets (groups that are not significantly different)
+                    subsets = []
+                    remaining = set(sorted_groups)
+                    
+                    while remaining:
+                        # Start a new subset with the first remaining group
+                        current = list(remaining)[0]
+                        subset = {current}
+                        remaining.remove(current)
+                        
+                        # Try to add other groups to this subset
+                        for group in list(remaining):
+                            # If not significantly different from all groups in the subset, add it
+                            if all(not sig_matrix[group][g] for g in subset):
+                                subset.add(group)
+                                remaining.remove(group)
+                        
+                        subsets.append(subset)
+                    
+                    # Create a DataFrame for displaying homogeneous subsets
+                    subset_data = []
+                    for i, subset in enumerate(subsets):
+                        for group in subset:
+                            subset_data.append({
+                                'Group': group, 
+                                'Mean': group_data[group]['mean'],
+                                'Subset': f"Subset {i+1}"
+                            })
+                    
+                    subset_df = pd.DataFrame(subset_data)
+                    subset_df = subset_df.sort_values('Mean', ascending=False)
+                    
+                    # Pivot to create a format similar to SPSS output
+                    subset_pivot = subset_df.pivot(index=['Group', 'Mean'], columns='Subset', values='Mean')
+                    subset_pivot = subset_pivot.reset_index()
+                    
+                    st.write(subset_pivot)
+                    st.markdown("""
+                    **Catatan tentang uji Newman-Keuls:** 
+                    - Kelompok dalam subset yang sama tidak berbeda secara signifikan
+                    - Uji Newman-Keuls memiliki kekuatan statistik yang lebih tinggi dibandingkan Tukey HSD
+                    - SNK menggunakan pendekatan step-down yang menyesuaikan nilai kritis berdasarkan rentang antara rata-rata
+                    """)
                 
                 elif posthoc_method == "Games-Howell":
                     st.write("#### Uji Games-Howell")
@@ -1286,7 +1303,7 @@ with tab3:
     ### Referensi Jurnal yang dipergunakan :
     
     1. Fisher, R.A. (1925). Statistical methods for research workers. Edinburgh: Oliver and Boyd.
-      2. Gelman, A. (2005). Analysis of variance—why it is more important than ever. *The Annals of Statistics*, 33(1), 1-53.
+    2. Gelman, A. (2005). Analysis of variance—why it is more important than ever. *The Annals of Statistics*, 33(1), 1-53.
     3. Keselman, H.J., Algina, J., Kowalchuk, R.K., & Wolfinger, R.D. (1998). A comparison of two approaches for selecting covariance structures in the analysis of repeated measurements. *Communications in Statistics - Simulation and Computation*, 27(3), 591-604.    
     4. Maxwell, S.E., Delaney, H.D., & Kelley, K. (2017). *Designing experiments and analyzing data: A model comparison perspective* (3rd ed.). Routledge.   
     5. Howell, D.C. (2012). *Statistical methods for psychology* (8th ed.). Cengage Learning.
