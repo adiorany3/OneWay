@@ -1001,16 +1001,19 @@ with tab2:
             """)
         
         with col2:
-            st.subheader("Rerata Kelompok dengan CI 95%")
+            # Calculate CI level based on significance level
+            ci_level = 100 * (1 - significance_level)  # 95% for 0.05, 99% for 0.01
+            
+            st.subheader(f"Rerata Kelompok dengan CI {ci_level:.0f}%")
             fig, ax = plt.subplots(figsize=(10, 6))
-            sns.barplot(x=categorical_col, y=numeric_col, data=viz_df, errorbar=('ci', 95), ax=ax)
-            ax.set_title(f'Rerata {numeric_col} berdasarkan {categorical_col} dengan CI 95%')
+            sns.barplot(x=categorical_col, y=numeric_col, data=viz_df, errorbar=('ci', ci_level), ax=ax)
+            ax.set_title(f'Rerata {numeric_col} berdasarkan {categorical_col} dengan CI {ci_level:.0f}%')
             st.pyplot(fig)
             
-            st.markdown("""
+            st.markdown(f"""
             **Cara menginterpretasikan plot batang ini:**
             - **Tinggi batang**: Menunjukkan nilai rerata untuk setiap kelompok
-            - **Rentang kesalahan**: Menunjukkan interval kepercayaan 95% untuk setiap rerata
+            - **Rentang kesalahan**: Menunjukkan interval kepercayaan {ci_level:.0f}% untuk setiap rerata
             
             **Yang perlu diperhatikan:**
             - Bandingkan nilai rerata antar kelompok
@@ -1283,7 +1286,7 @@ with tab3:
     ### Referensi Jurnal yang dipergunakan :
     
     1. Fisher, R.A. (1925). Statistical methods for research workers. Edinburgh: Oliver and Boyd.
-    2. Gelman, A. (2005). Analysis of variance—why it is more important than ever. *The Annals of Statistics*, 33(1), 1-53.
+     2. Gelman, A. (2005). Analysis of variance—why it is more important than ever. *The Annals of Statistics*, 33(1), 1-53.
     3. Keselman, H.J., Algina, J., Kowalchuk, R.K., & Wolfinger, R.D. (1998). A comparison of two approaches for selecting covariance structures in the analysis of repeated measurements. *Communications in Statistics - Simulation and Computation*, 27(3), 591-604.    
     4. Maxwell, S.E., Delaney, H.D., & Kelley, K. (2017). *Designing experiments and analyzing data: A model comparison perspective* (3rd ed.). Routledge.   
     5. Howell, D.C. (2012). *Statistical methods for psychology* (8th ed.). Cengage Learning.
@@ -1353,7 +1356,7 @@ with tab3:
 def main():
     pass  # Your main code logic here if needed
 
-if __name__ == '__main__':
+if __name__ '__main__':
     main()
 
     # Footer - moved here to be displayed immediately
