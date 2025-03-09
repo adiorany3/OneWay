@@ -27,8 +27,7 @@ current_year = datetime.datetime.now().year
 # Set title
 st.title('Analisis Uji ANOVA Satu Arah')
 st.markdown("""
-Aplikasi ini melakukan Analisis Varians (ANOVA) Satu Arah untuk menentukan apakah ada perbedaan 
-signifikan secara statistik antara rata-rata dari tiga atau lebih kelompok independen.
+Analisis Varians (ANOVA) Satu Arah adalah metode statistik yang digunakan untuk membandingkan rata-rata tiga atau lebih kelompok independen untuk menentukan apakah terdapat perbedaan yang signifikan secara statistik di antara mereka. Teknik ini memeriksa variasi data baik di dalam maupun antar kelompok untuk mengevaluasi perbedaan keseluruhan.
 """)
 
 # Function to create example data
