@@ -1280,7 +1280,7 @@ with tab3:
     
     F-statistik dihitung sebagai: F = (SSB/dfB) / (SSW/dfW) = MSB / MSW
     
-    ### Referensi Jurnal Internasional
+    ### Referensi Jurnal yang dipergunakan :
     
     1. Fisher, R.A. (1925). Statistical methods for research workers. Edinburgh: Oliver and Boyd.
     
