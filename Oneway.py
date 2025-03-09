@@ -654,56 +654,72 @@ with tab2:
                     
                     # Perform Games-Howell test for each pair
                     for group1, group2 in pairs:
-                        data1 = df[df[categorical_col] == group1][numeric_col]
-                        data2 = df[df[categorical_col] == group2][numeric_col]
-                        
-                        n1, n2 = len(data1), len(data2)
-                        mean1, mean2 = data1.mean(), data2.mean()
-                        var1, var2 = data1.var(ddof=1), data2.var(ddof=1)
-                        
-                        # Mean difference
-                        mean_diff = mean1 - mean2
-                        
-                        # Pooled standard error
-                        se = np.sqrt(var1/n1 + var2/n2)
-                        
-                        # Calculate degrees of freedom using Welch-Satterthwaite equation
-                        df_val = (var1/n1 + var2/n2)**2 / ((var1/n1)**2/(n1-1) + (var2/n2)**2/(n2-1))
-                        
-                        # Calculate t-value
-                        t_val = mean_diff / se
-                        
-                        # Get critical q value (studentized range)
-                        # For Games-Howell we need the q critical value, approximating with t
-                        q_crit = stats.t.ppf(1 - significance_level/2, df_val) * np.sqrt(2)
-                        
-                        # Calculate p-value
-                        p_val = 2 * (1 - stats.t.cdf(abs(t_val), df_val))
-                        
-                        # Calculate confidence interval
-                        lower = mean_diff - q_crit * se
-                        upper = mean_diff + q_crit * se
-                        
-                        results.append({
-                            'group1': group1,
-                            'group2': group2,
-                            'meandiff': mean_diff,
-                            't-value': t_val,
-                            'df': df_val,
-                            'p-value': p_val,
-                            'lower': lower,
-                            'upper': upper,
-                            'reject': p_val < significance_level
-                        })
+                        # Add error checking to avoid potential issues
+                        try:
+                            # Get data for each group
+                            data1 = df[df[categorical_col] == group1][numeric_col].values
+                            data2 = df[df[categorical_col] == group2][numeric_col].values
+                            
+                            # Check if we have enough data
+                            if len(data1) < 2 or len(data2) < 2:
+                                st.warning(f"Insufficient data for groups {group1} or {group2}. Skipping this comparison.")
+                                continue
+                            
+                            n1, n2 = len(data1), len(data2)
+                            mean1, mean2 = np.mean(data1), np.mean(data2)
+                            var1, var2 = np.var(data1, ddof=1), np.var(data2, ddof=1)
+                            
+                            # Mean difference
+                            mean_diff = mean1 - mean2
+                            
+                            # Pooled standard error
+                            se = np.sqrt(var1/n1 + var2/n2)
+                            
+                            # Calculate degrees of freedom using Welch-Satterthwaite equation
+                            if se == 0:  # Avoid division by zero
+                                df_val = float('inf')
+                            else:
+                                df_val = ((var1/n1 + var2/n2)**2) / (((var1/n1)**2/(n1-1)) + ((var2/n2)**2/(n2-1)))
+                            
+                            # Calculate t-value
+                            t_val = abs(mean_diff) / se if se > 0 else float('inf')
+                            
+                            # Get critical q value (studentized range)
+                            q_crit = stats.t.ppf(1 - significance_level/2, df_val) * np.sqrt(2)
+                            
+                            # Calculate p-value
+                            p_val = 2 * (1 - stats.t.cdf(abs(t_val), df_val))
+                            
+                            # Calculate confidence interval
+                            lower = mean_diff - q_crit * se
+                            upper = mean_diff + q_crit * se
+                            
+                            results.append({
+                                'group1': group1,
+                                'group2': group2,
+                                'meandiff': mean_diff,
+                                't-value': t_val,
+                                'df': df_val,
+                                'p-value': p_val,
+                                'lower': lower,
+                                'upper': upper,
+                                'reject': p_val < significance_level
+                            })
+                        except Exception as e:
+                            st.error(f"Error analyzing groups {group1} and {group2}: {str(e)}")
+                            continue
                     
-                    posthoc_df = pd.DataFrame(results)
-                    st.write(posthoc_df)
-                    
-                    # Store column names for later use
-                    comparison_col1, comparison_col2 = 'group1', 'group2'
-                    diff_col = 'meandiff'
-                    pval_col = 'p-value'
-                    reject_col = 'reject'
+                    if results:
+                        posthoc_df = pd.DataFrame(results)
+                        st.write(posthoc_df)
+                        
+                        # Store column names for later use
+                        comparison_col1, comparison_col2 = 'group1', 'group2'
+                        diff_col = 'meandiff'
+                        pval_col = 'p-value'
+                        reject_col = 'reject'
+                    else:
+                        st.error("Tidak dapat melakukan analisis post-hoc Games-Howell. Silakan periksa data Anda.")
                 
                 # Create a subset table showing significant differences
                 st.subheader("Perbedaan Kelompok yang Signifikan")
