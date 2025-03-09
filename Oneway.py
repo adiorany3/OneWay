@@ -1280,6 +1280,18 @@ with tab3:
     
     F-statistik dihitung sebagai: F = (SSB/dfB) / (SSW/dfW) = MSB / MSW
     
+    ### Referensi Jurnal yang dipergunakan :
+    
+    1. Fisher, R.A. (1925). Statistical methods for research workers. Edinburgh: Oliver and Boyd.
+    2. Gelman, A. (2005). Analysis of variance—why it is more important than ever. *The Annals of Statistics*, 33(1), 1-53.
+    3. Keselman, H.J., Algina, J., Kowalchuk, R.K., & Wolfinger, R.D. (1998). A comparison of two approaches for selecting covariance structures in the analysis of repeated measurements. *Communications in Statistics - Simulation and Computation*, 27(3), 591-604.    
+    4. Maxwell, S.E., Delaney, H.D., & Kelley, K. (2017). *Designing experiments and analyzing data: A model comparison perspective* (3rd ed.). Routledge.   
+    5. Howell, D.C. (2012). *Statistical methods for psychology* (8th ed.). Cengage Learning.
+    6. Lakens, D. (2013). Calculating and reporting effect sizes to facilitate cumulative science: a practical primer for t-tests and ANOVAs. *Frontiers in Psychology*, 4, 863.
+    7. Blanca, M.J., Alarcón, R., Arnau, J., Bono, R., & Bendayan, R. (2017). Non-normal data: Is ANOVA still a valid option? *Psicothema*, 29(4), 552-557.
+    8. Wilcox, R.R. (2017). *Introduction to robust estimation and hypothesis testing* (4th ed.). Academic Press.
+    """)
+
     # Add visualization of ANOVA concept
     st.subheader("Visualisasi Konsep ANOVA")
     
@@ -1337,26 +1349,6 @@ with tab3:
     Selesai
     ```
     """)
-
-    ### Referensi Jurnal yang dipergunakan :
-    
-    1. Fisher, R.A. (1925). Statistical methods for research workers. Edinburgh: Oliver and Boyd.
-    
-    2. Gelman, A. (2005). Analysis of variance—why it is more important than ever. *The Annals of Statistics*, 33(1), 1-53.
-    
-    3. Keselman, H.J., Algina, J., Kowalchuk, R.K., & Wolfinger, R.D. (1998). A comparison of two approaches for selecting covariance structures in the analysis of repeated measurements. *Communications in Statistics - Simulation and Computation*, 27(3), 591-604.
-    
-    4. Maxwell, S.E., Delaney, H.D., & Kelley, K. (2017). *Designing experiments and analyzing data: A model comparison perspective* (3rd ed.). Routledge.
-    
-    5. Howell, D.C. (2012). *Statistical methods for psychology* (8th ed.). Cengage Learning.
-    
-    6. Lakens, D. (2013). Calculating and reporting effect sizes to facilitate cumulative science: a practical primer for t-tests and ANOVAs. *Frontiers in Psychology*, 4, 863.
-    
-    7. Blanca, M.J., Alarcón, R., Arnau, J., Bono, R., & Bendayan, R. (2017). Non-normal data: Is ANOVA still a valid option? *Psicothema*, 29(4), 552-557.
-    
-    8. Wilcox, R.R. (2017). *Introduction to robust estimation and hypothesis testing* (4th ed.). Academic Press.
-    """)
-
 # Define main function or remove the call if not needed
 def main():
     pass  # Your main code logic here if needed
