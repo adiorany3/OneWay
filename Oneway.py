@@ -1305,7 +1305,7 @@ with tab3:
     st.markdown("""
     #### Perbandingan Visual Variasi Dalam dan Antar Kelompok
     
-    ![ANOVA Concept](https://miro.medium.com/max/1400/1*_HjenBLix6RXQJx6lHGR9Q.png)
+    ![ANOVA Concept](https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Anova_graph.png/600px-Anova_graph.png)
     
     *Gambar: Ilustrasi konsep ANOVA. Variasi total dibagi menjadi variasi dalam kelompok dan antar kelompok.*
     
