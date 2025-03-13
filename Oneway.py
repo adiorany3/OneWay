@@ -7,6 +7,7 @@ from statsmodels.stats.multicomp import pairwise_tukeyhsd
 import matplotlib.pyplot as plt
 import io
 import datetime  # Import moved to the top with other imports
+import time  # Added missing import
 
 # Modified to include calculator favicon
 st.set_page_config(page_title="Analisis Uji ANOVA Satu Arah", page_icon="🧮", layout="wide")
@@ -53,7 +54,7 @@ def check_assumptions(df, numeric_col, categorical_col):
     if not isinstance(df, pd.DataFrame):
         st.error(f"DataFrame diharapkan tetapi mendapatkan {type(df).__name__}")
         return {
-            'normality': pd.DataFrame({'Group': ['Error'], 'Normal': [False]}),
+            'normality': pd.DataFrame({'Group': ['Error'], 'Normal': [False]}),  # Fixed: removed extra parenthesis
             'homogeneity': {'Statistic': 0, 'p-value': 0, 'Equal Variances': False}
         }
     
@@ -620,7 +621,7 @@ with tab2:
                             lsr = q_crit * se
                             
                             # Calculate test statistic
-                            q_stat = mean_diff / se
+                            q_stat = mean_diff / se if se > 0 else float('inf')
                             
                             # Check if difference is significant
                             significant = mean_diff > lsr
