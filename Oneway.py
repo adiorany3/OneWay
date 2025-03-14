@@ -1367,6 +1367,12 @@ with tab2:
             group_summary_str = df.groupby(categorical_col)[numeric_col].describe().reset_index().to_string()
             doc.add_paragraph(group_summary_str)
             
+            # Add footer
+            section = doc.sections[0]
+            footer = section.footer
+            footer_para = footer.paragraphs[0]
+            footer_para.text = f"Generated using One-Way ANOVA Analysis Tool | © {datetime.datetime.now().year} Galuh Adi Insani"
+            
             # Save the document to a BytesIO object
             doc_io = io.BytesIO()
             doc.save(doc_io)
