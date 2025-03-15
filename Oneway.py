@@ -1556,6 +1556,195 @@ dunnTest(""" + numeric_col + """ ~ """ + categorical_col + """, data=data, metho
                 """)
                 
                 st.info("Catatan: Package yang diperlukan mungkin perlu diinstal terlebih dahulu menggunakan `install.packages()`.")
+            
+            # Create a complete R script for download
+            r_complete_script = f"""# R Script for One-Way ANOVA Analysis
+# Generated on: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+# Analysis of: {numeric_col} by {categorical_col}
+
+# ---- 1. Data Preparation ----
+# Assuming data is loaded from CSV file
+# If you have a different file format, adjust accordingly
+data <- read.csv("your_data.csv")  # Replace with your actual file path
+
+# Examine data structure
+str(data)
+summary(data)
+
+# ---- 2. Check ANOVA Assumptions ----
+# Normality test (Shapiro-Wilk)
+normality_results <- lapply(split(data${numeric_col}, data${categorical_col}), shapiro.test)
+print("Normality Test Results:")
+print(normality_results)
+
+# Homogeneity of variance (Levene's test)
+if (!require(car)) {{
+  install.packages("car")
+  library(car)
+}}
+homogeneity_result <- leveneTest({numeric_col} ~ {categorical_col}, data=data)
+print("Homogeneity of Variance Test:")
+print(homogeneity_result)
+
+# ---- 3. One-Way ANOVA ----
+# Run ANOVA
+model <- aov({numeric_col} ~ {categorical_col}, data=data)
+
+# Summary results
+cat("\\n----- ANOVA Results -----\\n")
+summary_result <- summary(model)
+print(summary_result)
+
+# Calculate effect size (Eta-squared)
+if (!require(effectsize)) {{
+  install.packages("effectsize")
+  library(effectsize)
+}}
+eta_result <- eta_squared(model)
+print("Effect Size (Eta-squared):")
+print(eta_result)
+
+# ---- 4. Post-Hoc Tests ----"""
+
+            # Add the appropriate post-hoc test code based on user selection
+            if 'posthoc_method' in locals():
+                if posthoc_method == "Tukey HSD":
+                    r_complete_script += """
+# Tukey HSD Test
+cat("\\n----- Tukey HSD Test -----\\n")
+tukey_result <- TukeyHSD(model)
+print(tukey_result)
+
+# Plot Tukey HSD results
+png("tukey_plot.png", width=800, height=600)
+plot(tukey_result)
+dev.off()
+"""
+                elif posthoc_method == "Duncan":
+                    r_complete_script += """
+# Duncan Test
+if (!require(agricolae)) {
+  install.packages("agricolae")
+  library(agricolae)
+}
+cat("\\n----- Duncan Test -----\\n")
+duncan_result <- duncan.test(model, '""" + categorical_col + """', console=TRUE)
+print(duncan_result)
+"""
+                elif posthoc_method == "Newman-Keuls":
+                    r_complete_script += """
+# Student-Newman-Keuls Test
+if (!require(agricolae)) {
+  install.packages("agricolae")
+  library(agricolae)
+}
+cat("\\n----- Student-Newman-Keuls Test -----\\n")
+snk_result <- SNK.test(model, '""" + categorical_col + """', console=TRUE)
+print(snk_result)
+"""
+                elif posthoc_method == "Games-Howell":
+                    r_complete_script += """
+# Games-Howell Test for unequal variances
+if (!require(PMCMRplus)) {
+  install.packages("PMCMRplus")
+  library(PMCMRplus)
+}
+cat("\\n----- Games-Howell Test -----\\n")
+gh_result <- gamesHowellTest(""" + numeric_col + """ ~ """ + categorical_col + """, data=data)
+print(gh_result)
+"""
+                elif posthoc_method == "Bonferroni":
+                    r_complete_script += """
+# Bonferroni adjustment
+cat("\\n----- Bonferroni Test -----\\n")
+bonf_result <- pairwise.t.test(data$""" + numeric_col + """, data$""" + categorical_col + """, p.adjust.method = "bonf")
+print(bonf_result)
+"""
+                elif posthoc_method == "Scheffe":
+                    r_complete_script += """
+# Scheffe test
+if (!require(agricolae)) {
+  install.packages("agricolae")
+  library(agricolae)
+}
+cat("\\n----- Scheffe Test -----\\n")
+scheffe_result <- scheffe.test(model, '""" + categorical_col + """', console=TRUE)
+print(scheffe_result)
+"""
+
+            # Add Welch ANOVA and Kruskal-Wallis code
+            r_complete_script += """
+# ---- 5. Alternative Tests ----
+# Welch ANOVA (for unequal variances)
+cat("\\n----- Welch ANOVA -----\\n")
+welch_result <- oneway.test(""" + numeric_col + """ ~ """ + categorical_col + """, data=data, var.equal=FALSE)
+print(welch_result)
+
+# Kruskal-Wallis test (non-parametric alternative)
+cat("\\n----- Kruskal-Wallis Test -----\\n")
+kw_result <- kruskal.test(""" + numeric_col + """ ~ """ + categorical_col + """, data=data)
+print(kw_result)
+
+# Dunn test for post-hoc comparisons after Kruskal-Wallis
+if (!require(FSA)) {
+  install.packages("FSA")
+  library(FSA)
+}
+cat("\\n----- Dunn Test -----\\n")
+dunn_result <- dunnTest(""" + numeric_col + """ ~ """ + categorical_col + """, data=data, method="bonf")
+print(dunn_result)
+
+# ---- 6. Visualizations ----
+# Create directory for plots if it doesn't exist
+if (!dir.exists("plots")) {
+  dir.create("plots")
+}
+
+# Boxplot
+png("plots/boxplot.png", width=800, height=600)
+boxplot(""" + numeric_col + """ ~ """ + categorical_col + """, data=data, 
+        main="Boxplot by Group", ylab='""" + numeric_col + """')
+dev.off()
+
+# Barplot with error bars
+if (!require(ggplot2)) {
+  install.packages("ggplot2")
+  library(ggplot2)
+}
+bar_plot <- ggplot(data, aes(x=""" + categorical_col + """, y=""" + numeric_col + """)) + 
+  stat_summary(fun=mean, geom="bar") +
+  stat_summary(fun.data=mean_cl_normal, geom="errorbar", width=0.2) +
+  labs(title="Mean with 95% CI by Group", y='""" + numeric_col + """')
+
+ggsave("plots/barplot.png", plot=bar_plot, width=8, height=6)
+
+# QQ plots for each group
+if (!require(lattice)) {
+  install.packages("lattice")
+  library(lattice)
+}
+png("plots/qqplot.png", width=1000, height=600)
+print(qqmath(~""" + numeric_col + """ | """ + categorical_col + """, data=data,
+       panel=function(x, ...) {
+         panel.qqmathline(x, ...)
+         panel.qqmath(x, ...)
+       }))
+dev.off()
+
+cat("\\nAnalysis complete! Results and plots are available in your working directory.\\n")
+"""
+
+            # Add download button for R script
+            st.download_button(
+                label="📥 Download R Script",
+                data=r_complete_script,
+                file_name=f"anova_{numeric_col}_by_{categorical_col}.R",
+                mime="text/plain",
+                key="r_code_download"
+            )
+            
+            # Add a separator before the next section
+            st.markdown("---")
 
             # Visualizations section continues here...
     else:
@@ -1679,7 +1868,7 @@ with tab3:
 def main():
     pass  # Your main code logic here if needed
 
-if __name__ == '__main__':
+if __name__ '__main__':
     main()
 
 # Footer with LinkedIn profile link and improved styling
