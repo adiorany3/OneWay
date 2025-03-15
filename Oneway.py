@@ -1745,6 +1745,24 @@ cat("\\nAnalysis complete! Results and plots are available in your working direc
                 key="r_code_download"
             )
             
+            # Enhanced R software information with warning about package dependencies
+            st.warning("""
+            ### ⚠️ Informasi Penting untuk Menjalankan Script R
+            
+            **Software R dapat di download melalui link**: [https://www.r-project.org/](https://www.r-project.org/)
+            
+            Script R yang dihasilkan memerlukan beberapa package tambahan yang akan otomatis diinstal saat script dijalankan:
+            - `car` untuk uji Levene
+            - `effectsize` untuk perhitungan eta-squared
+            - `agricolae` untuk uji post-hoc
+            - `FSA` untuk uji Dunn
+            - `ggplot2` dan `lattice` untuk visualisasi
+            
+            **Peringatan umum**: Beberapa package mungkin menampilkan pesan seperti "package X was built under R version Y" yang dapat diabaikan selama tidak ada error.
+            
+            **Untuk pengalaman terbaik, gunakan RStudio** yang dapat diunduh dari [https://posit.co/download/rstudio-desktop/](https://posit.co/download/rstudio-desktop/)
+            """)
+            
             # Add a separator before the next section
             st.markdown("---")
 
