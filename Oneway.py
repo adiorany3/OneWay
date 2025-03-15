@@ -98,6 +98,16 @@ def check_assumptions(df, numeric_col, categorical_col):
                 'Equal Variances': False
             }
         
+        # Add R code equivalents for assumption checks
+        r_code_assumptions = {
+            'shapiro': "# Normality test for each group\n" +
+                      "lapply(split(data$" + numeric_col + ", data$" + categorical_col + "), shapiro.test)",
+            'levene': "# Homogeneity of variance\n" +
+                     "library(car)\n" +
+                     "leveneTest(" + numeric_col + " ~ " + categorical_col + ", data=data)"
+        }
+        results['r_code'] = r_code_assumptions
+        
         return results
     except Exception as e:
         st.error(f"Error memeriksa asumsi: {e}")
@@ -1410,6 +1420,144 @@ with tab2:
             - Interpretasi hasil
             - Metadata analisis
             """)
+
+            # Add after post-hoc tests but before visualizations
+            
+            # Add R Code Equivalent section
+            st.header("Analisis Menggunakan R")
+            
+            with st.expander("Lihat Kode R Untuk Analisis Yang Sama"):
+                st.markdown("""
+                ### Kode R untuk Analisis ANOVA
+                
+                Berikut ini adalah kode R yang setara untuk melakukan analisis yang sama. Kode ini dapat digunakan untuk memverifikasi hasil atau melakukan analisis di R.
+                
+                #### 1. Persiapan Data
+                ```r
+                # Asumsikan data tersedia dalam file CSV
+                data <- read.csv("your_data.csv")
+                
+                # Periksa struktur data
+                str(data)
+                summary(data)
+                ```
+                
+                #### 2. Uji Asumsi
+                ```r
+                # Uji Normalitas (Shapiro-Wilk)
+                lapply(split(data$""" + numeric_col + """, data$""" + categorical_col + """), shapiro.test)
+                
+                # Uji Homogenitas Varians (Levene's test)
+                library(car)
+                leveneTest(""" + numeric_col + """ ~ """ + categorical_col + """, data=data)
+                ```
+                
+                #### 3. ANOVA Satu Arah
+                ```r
+                # Jalankan ANOVA
+                model <- aov(""" + numeric_col + """ ~ """ + categorical_col + """, data=data)
+                
+                # Ringkasan hasil
+                summary(model)
+                
+                # Ukuran efek (Eta-squared)
+                library(effectsize)
+                eta_squared(model)
+                ```
+                """)
+                
+                # Add R code for the selected post-hoc test
+                st.markdown("#### 4. Uji Post-Hoc")
+                
+                if 'posthoc_method' in locals():
+                    if posthoc_method == "Tukey HSD":
+                        st.code("""
+# Tukey HSD
+TukeyHSD(model)
+
+# Visual plot of Tukey HSD results
+plot(TukeyHSD(model))
+""", language="r")
+                    
+                    elif posthoc_method == "Duncan":
+                        st.code("""
+# Duncan test
+library(agricolae)
+duncan.test(model, '""" + categorical_col + """', console=TRUE)
+""", language="r")
+                    
+                    elif posthoc_method == "Newman-Keuls":
+                        st.code("""
+# Student-Newman-Keuls test
+library(agricolae)
+SNK.test(model, '""" + categorical_col + """', console=TRUE)
+""", language="r")
+                    
+                    elif posthoc_method == "Games-Howell":
+                        st.code("""
+# Games-Howell test for unequal variances
+library(PMCMRplus)
+gamesHowellTest(""" + numeric_col + """ ~ """ + categorical_col + """, data=data)
+""", language="r")
+                    
+                    elif posthoc_method == "Bonferroni":
+                        st.code("""
+# Bonferroni adjustment
+pairwise.t.test(data$""" + numeric_col + """, data$""" + categorical_col + """, p.adjust.method = "bonf")
+""", language="r")
+                    
+                    elif posthoc_method == "Scheffe":
+                        st.code("""
+# Scheffe test
+library(agricolae)
+scheffe.test(model, '""" + categorical_col + """', console=TRUE)
+""", language="r")
+                    
+                # Add Welch ANOVA code
+                st.markdown("#### 5. ANOVA Welch (untuk varians tidak sama)")
+                st.code("""
+# Welch ANOVA
+oneway.test(""" + numeric_col + """ ~ """ + categorical_col + """, data=data, var.equal=FALSE)
+""", language="r")
+                
+                # Add Kruskal-Wallis code (non-parametric alternative)
+                st.markdown("#### 6. Alternatif Non-parametrik (Kruskal-Wallis)")
+                st.code("""
+# Kruskal-Wallis test
+kruskal.test(""" + numeric_col + """ ~ """ + categorical_col + """, data=data)
+
+# Dunn test for post-hoc comparisons after Kruskal-Wallis
+library(FSA)
+dunnTest(""" + numeric_col + """ ~ """ + categorical_col + """, data=data, method="bonf")
+""", language="r")
+                
+                st.markdown("""
+                #### 7. Visualisasi
+                ```r
+                # Boxplot
+                boxplot(""" + numeric_col + """ ~ """ + categorical_col + """, data=data, 
+                        main="Boxplot by Group", ylab='""" + numeric_col + """')
+                
+                # Barplot with error bars
+                library(ggplot2)
+                ggplot(data, aes(x=""" + categorical_col + """, y=""" + numeric_col + """)) + 
+                  stat_summary(fun=mean, geom="bar") +
+                  stat_summary(fun.data=mean_cl_normal, geom="errorbar", width=0.2) +
+                  labs(title="Mean with 95% CI by Group", y='""" + numeric_col + """')
+                  
+                # QQ plots for each group
+                library(lattice)
+                qqmath(~""" + numeric_col + """ | """ + categorical_col + """, data=data,
+                       panel=function(x, ...) {
+                         panel.qqmathline(x, ...)
+                         panel.qqmath(x, ...)
+                       })
+                ```
+                """)
+                
+                st.info("Catatan: Package yang diperlukan mungkin perlu diinstal terlebih dahulu menggunakan `install.packages()`.")
+
+            # Visualizations section continues here...
     else:
         st.info("Please go to the 'Data Input' tab, select your data, and click 'Run ANOVA Analysis'")
 
