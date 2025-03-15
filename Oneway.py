@@ -1551,30 +1551,6 @@ library(FSA)
 dunnTest(""" + numeric_col + """ ~ """ + categorical_col + """, data=data, method="bonf")
 """, language="r")
                 
-                st.markdown("""
-                #### 7. Visualisasi
-                ```r
-                # Boxplot
-                boxplot(""" + numeric_col + """ ~ """ + categorical_col + """, data=data, 
-                        main="Boxplot by Group", ylab='""" + numeric_col + """')
-                
-                # Barplot with error bars
-                library(ggplot2)
-                ggplot(data, aes(x=""" + categorical_col + """, y=""" + numeric_col + """)) + 
-                  stat_summary(fun=mean, geom="bar") +
-                  stat_summary(fun.data=mean_cl_normal, geom="errorbar", width=0.2) +
-                  labs(title="Mean with 95% CI by Group", y='""" + numeric_col + """')
-                  
-                # QQ plots for each group
-                library(lattice)
-                qqmath(~""" + numeric_col + """ | """ + categorical_col + """, data=data,
-                       panel=function(x, ...) {
-                         panel.qqmathline(x, ...)
-                         panel.qqmath(x, ...)
-                       })
-                ```
-                """)
-                
                 st.info("Catatan: Package yang diperlukan mungkin perlu diinstal terlebih dahulu menggunakan `install.packages()`.")
             
             # Create a complete R script for download
@@ -1888,7 +1864,7 @@ with tab3:
 def main():
     pass  # Your main code logic here if needed
 
-if __name__ '__main__':
+if __name__ == '__main__':  # Added missing "==" operator
     main()
 
 # Footer with LinkedIn profile link and improved styling
