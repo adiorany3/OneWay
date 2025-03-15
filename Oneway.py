@@ -161,9 +161,29 @@ with tab1:
                     file_extension = uploaded_file.name.split('.')[-1].lower()
                     
                     if file_extension in ['xls', 'xlsx']:
-                        # Read Excel file
-                        df = pd.read_excel(uploaded_file)
-                        st.success(f"File Excel '{uploaded_file.name}' berhasil diimpor")
+                        # Read Excel file with more robust error handling
+                        try:
+                            # Try to ensure openpyxl is available for xlsx files
+                            if file_extension == 'xlsx':
+                                try:
+                                    import openpyxl
+                                except ImportError:
+                                    st.warning("Installing openpyxl for Excel support...")
+                                    import pip
+                                    pip.main(['install', 'openpyxl'])
+                                    import openpyxl
+                            
+                            # Read the Excel file with explicit engine specification
+                            if file_extension == 'xlsx':
+                                df = pd.read_excel(uploaded_file, engine='openpyxl')
+                            else:  # For xls files
+                                df = pd.read_excel(uploaded_file, engine='xlrd')
+                                
+                            st.success(f"File Excel '{uploaded_file.name}' berhasil diimpor")
+                        except Exception as e:
+                            st.error(f"Error membaca file Excel: {str(e)}")
+                            st.info("Jika error terkait dengan library Excel, pastikan openpyxl (untuk xlsx) atau xlrd (untuk xls) terinstal.")
+                            st.stop()
                     elif file_extension == 'csv':
                         # Read CSV file
                         df = pd.read_csv(uploaded_file)
