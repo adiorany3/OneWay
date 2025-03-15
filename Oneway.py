@@ -187,7 +187,9 @@ with tab1:
                     elif file_extension == 'csv':
                         # Read CSV file
                         df = pd.read_csv(uploaded_file)
-                        st.success(f"File CSV '{uploaded_file.name}' berhasil diimpor")
+                        file_name = uploaded_file.name  # Store the filename for later use
+                        st.session_state.uploaded_file_name = file_name  # Save to session state
+                        st.success(f"File CSV '{file_name}' berhasil diimpor")
                     else:
                         st.error("Format file tidak didukung. Harap unggah file CSV, XLS, atau XLSX.")
                         st.stop()
@@ -1559,9 +1561,13 @@ dunnTest(""" + numeric_col + """ ~ """ + categorical_col + """, data=data, metho
 # Analysis of: {numeric_col} by {categorical_col}
 
 # ---- 1. Data Preparation ----
-# Assuming data is loaded from CSV file
-# If you have a different file format, adjust accordingly
-data <- read.csv("your_data.csv")  # Replace with your actual file path
+# Using the same file that was uploaded: {st.session_state.get('uploaded_file_name', 'your_data.csv')}
+data <- read.csv("{st.session_state.get('uploaded_file_name', 'your_data.csv')}")
+
+# If you moved the file or need to use a different file, update the path above
+# Alternative data loading options:
+# data <- read.csv("path/to/your/file.csv")  # For CSV files
+# data <- readxl::read_excel("path/to/your/file.xlsx")  # For Excel files
 
 # Examine data structure
 str(data)
